@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: comprapro-backend
+
+  # =============================================
+  # OPCIÓN 1: H2 EMBEBIDO (sin instalar MySQL)
+  # =============================================
+  datasource:
+    url: jdbc:h2:mem:compraprodb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+
+  # =============================================
+  # OPCIÓN 2: MySQL (descomentar y comentar H2)
+  # =============================================
+  # datasource:
+  #   url: jdbc:mysql://localhost:3306/compraprodb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+  #   driver-class-name: com.mysql.cj.jdbc.Driver
+  #   username: root
+  #   password: root
+  # jpa:
+  #   hibernate:
+  #     ddl-auto: update
+  #   show-sql: true
+  #   properties:
+  #     hibernate:
+  #       dialect: org.hibernate.dialect.MySQL8Dialect
+
+server:
+  port: 8080
+
+# JWT Configuration
+jwt:
+  secret: comprapro-secret-key-very-long-and-secure-2024-spring-boot-jwt
+  expiration: 86400000  # 24 horas en milisegundos
+
+# Logging
+logging:
+  level:
+    com.comprapro: DEBUG
+    org.springframework.security: DEBUG

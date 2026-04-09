@@ -1,0 +1,25 @@
+# ===== FRONTEND (React Native / Expo) =====
+comprapro-frontend/node_modules/
+comprapro-frontend/.expo/
+comprapro-frontend/dist/
+comprapro-frontend/build/
+comprapro-frontend/.env
+comprapro-frontend/.env.local
+comprapro-frontend/web-build/
+
+# ===== BACKEND (Spring Boot / Maven) =====
+comprapro-backend/target/
+comprapro-backend/.env
+comprapro-backend/*.class
+comprapro-backend/*.jar
+comprapro-backend/*.war
+
+# ===== RAÍZ =====
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/settings.json
+*.iml
+node_modules
