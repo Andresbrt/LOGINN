@@ -3,13 +3,16 @@ spring:
     name: comprapro-backend
 
   # =============================================
-  # OPCIÓN 1: H2 EMBEBIDO (sin instalar MySQL)
+  # BASE DE DATOS
+  # - LOCAL: usa H2 embebido (sin configurar nada)
+  # - RENDER: define la variable de entorno DATABASE_URL
+  #   con el valor "Internal Database URL" de Render
   # =============================================
   datasource:
-    url: jdbc:h2:mem:compraprodb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: ${DATABASE_URL:jdbc:h2:mem:compraprodb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    driver-class-name: ${DATABASE_DRIVER:org.h2.Driver}
+    username: ${DATABASE_USERNAME:sa}
+    password: ${DATABASE_PASSWORD:}
 
   h2:
     console:
@@ -18,39 +21,23 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
-    show-sql: true
+      ddl-auto: ${DDL_AUTO:create-drop}
+    show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
-        format_sql: true
-
-  # =============================================
-  # OPCIÓN 2: MySQL (descomentar y comentar H2)
-  # =============================================
-  # datasource:
-  #   url: jdbc:mysql://localhost:3306/compraprodb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-  #   driver-class-name: com.mysql.cj.jdbc.Driver
-  #   username: root
-  #   password: root
-  # jpa:
-  #   hibernate:
-  #     ddl-auto: update
-  #   show-sql: true
-  #   properties:
-  #     hibernate:
-  #       dialect: org.hibernate.dialect.MySQL8Dialect
+        dialect: ${HIBERNATE_DIALECT:org.hibernate.dialect.H2Dialect}
+        format_sql: false
 
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 # JWT Configuration
 jwt:
-  secret: comprapro-secret-key-very-long-and-secure-2024-spring-boot-jwt
+  secret: ${JWT_SECRET:comprapro-secret-key-very-long-and-secure-2024-spring-boot-jwt}
   expiration: 86400000  # 24 horas en milisegundos
 
 # Logging
 logging:
   level:
-    com.comprapro: DEBUG
-    org.springframework.security: DEBUG
+    com.comprapro: INFO
+    org.springframework.security: WARN
