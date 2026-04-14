@@ -55,42 +55,59 @@ export default function MisComprasScreen() {
     }
   };
 
-  const renderItem = ({ item }: { item: Compra }) => (
+  const renderItem = ({ item }: { item: Compra }) => {
+    const statusColor = getEstadoColor(item.estado);
+    return (
     <TouchableOpacity
       style={[styles.card, SHADOWS.sm]}
       onPress={() => { setSelected(item); setModalVisible(true); }}
       activeOpacity={0.8}
     >
-      <View style={styles.cardTop}>
-        <View style={styles.orderBadge}>
-          <Ionicons name="receipt-outline" size={14} color={COLORS.primary} />
-          <Text style={styles.orderNum}>{item.numeroCompra}</Text>
-        </View>
-        <View style={[styles.estadoBadge, { backgroundColor: getEstadoColor(item.estado) + '20' }]}>
-          <Text style={[styles.estadoText, { color: getEstadoColor(item.estado) }]}>{item.estado}</Text>
-        </View>
-      </View>
+      {/* Stripe izquierdo de color por estado */}
+      <View style={[styles.cardStripe, { backgroundColor: statusColor }]} />
 
-      <Text style={styles.clienteNombre}>{item.clienteNombre}</Text>
-      <Text style={styles.fecha}>{formatFecha(item.fechaCompra)}</Text>
-
-      <View style={styles.cardFooter}>
-        <View style={styles.itemsCount}>
-          <Ionicons name="cube-outline" size={14} color={COLORS.textSecondary} />
-          <Text style={styles.itemsText}>{item.detalles?.length || 0} producto{(item.detalles?.length || 0) !== 1 ? 's' : ''}</Text>
+      <View style={styles.cardContent}>
+        <View style={styles.cardTop}>
+          <View style={styles.orderBadge}>
+            <Ionicons name="receipt-outline" size={14} color={COLORS.primary} />
+            <Text style={styles.orderNum}>{item.numeroCompra}</Text>
+          </View>
+          <View style={[styles.estadoBadge, { backgroundColor: statusColor + '20' }]}>
+            <View style={[styles.estadoDot, { backgroundColor: statusColor }]} />
+            <Text style={[styles.estadoText, { color: statusColor }]}>{item.estado}</Text>
+          </View>
         </View>
-        <Text style={styles.total}>${(item.total || 0).toFixed(2)}</Text>
+
+        <Text style={styles.clienteNombre}>{item.clienteNombre}</Text>
+        <Text style={styles.fecha}>{formatFecha(item.fechaCompra)}</Text>
+
+        <View style={styles.cardFooter}>
+          <View style={styles.itemsCount}>
+            <Ionicons name="cube-outline" size={13} color={COLORS.textSecondary} />
+            <Text style={styles.itemsText}>{item.detalles?.length || 0} producto{(item.detalles?.length || 0) !== 1 ? 's' : ''}</Text>
+          </View>
+          <Text style={[styles.total, { color: statusColor }]}>${(item.total || 0).toFixed(2)}</Text>
+        </View>
       </View>
     </TouchableOpacity>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
 
-      <LinearGradient colors={[COLORS.primary, COLORS.primaryDark]} style={styles.header}>
+      <LinearGradient colors={['#0052CC', '#6554C0']} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.header}>
         <Text style={styles.headerTitle}>Mis Compras</Text>
         <Text style={styles.headerSub}>{compras.length} registros totales</Text>
+        {compras.length > 0 && (
+          <View style={styles.headerStat}>
+            <Ionicons name="cash-outline" size={14} color="rgba(255,255,255,0.8)" />
+            <Text style={styles.headerStatText}>
+              Total acumulado: ${compras.reduce((s, c) => s + (c.total || 0), 0).toFixed(2)}
+            </Text>
+          </View>
+        )}
       </LinearGradient>
 
       {loading ? (
@@ -186,20 +203,34 @@ export default function MisComprasScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  header: { paddingTop: 50, paddingBottom: SPACING.xl, paddingHorizontal: SPACING.lg },
+  header: {
+    paddingTop: 50, paddingBottom: SPACING.xl, paddingHorizontal: SPACING.lg,
+    overflow: 'hidden',
+  },
   headerTitle: { fontSize: FONTS.sizes.xxl, fontWeight: '800', color: COLORS.white },
   headerSub: { fontSize: FONTS.sizes.sm, color: 'rgba(255,255,255,0.75)', marginTop: 2 },
+  headerStat: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 5,
+    borderRadius: 20, marginTop: 10,
+  },
+  headerStatText: { fontSize: FONTS.sizes.xs, color: '#fff', fontWeight: '600' },
   loader: { marginTop: 60 },
   list: { padding: SPACING.lg, paddingBottom: SPACING.xxl },
 
   card: {
     backgroundColor: COLORS.white, borderRadius: RADIUS.lg,
-    padding: SPACING.md, marginBottom: SPACING.sm,
+    marginBottom: SPACING.sm, flexDirection: 'row',
+    overflow: 'hidden',
   },
+  cardStripe: { width: 5, borderRadius: 0 },
+  cardContent: { flex: 1, padding: SPACING.md },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.xs },
   orderBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   orderNum: { fontSize: FONTS.sizes.xs, fontWeight: '700', color: COLORS.primary, fontFamily: 'monospace' },
-  estadoBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: RADIUS.full },
+  estadoBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 2, borderRadius: RADIUS.full },
+  estadoDot: { width: 6, height: 6, borderRadius: 3 },
   estadoText: { fontSize: 10, fontWeight: '700' },
   clienteNombre: { fontSize: FONTS.sizes.md, fontWeight: '700', color: COLORS.text },
   fecha: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary, marginTop: 2 },

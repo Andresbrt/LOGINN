@@ -20,28 +20,19 @@ interface Stats {
   productosStockBajo: number;
 }
 
-const StatCard = ({ icon, label, value, color, sublabel }: any) => (
-  <View style={[styles.statCard, SHADOWS.md]}>
-    <View style={[styles.statIconBg, { backgroundColor: color + '18' }]}>
-      <Ionicons name={icon} size={22} color={color} />
-    </View>
-    <Text style={styles.statValue}>{value}</Text>
-    <Text style={styles.statLabel}>{label}</Text>
-    {sublabel ? <Text style={styles.statSublabel}>{sublabel}</Text> : null}
-  </View>
-);
+const STAT_CARDS = [
+  { key: 'totalClientes', icon: 'people', label: 'Clientes', gradients: ['#0052CC', '#2684FF'] as [string, string], isCurrency: false },
+  { key: 'totalProductos', icon: 'cube', label: 'Productos', gradients: ['#36B37E', '#00B890'] as [string, string], isCurrency: false },
+  { key: 'comprasHoy', icon: 'receipt', label: 'Compras Hoy', gradients: ['#6554C0', '#8777D9'] as [string, string], isCurrency: false },
+  { key: 'ventasHoy', icon: 'cash', label: 'Ventas Hoy', gradients: ['#FF5630', '#FF8F73'] as [string, string], isCurrency: true },
+];
 
-const QuickAction = ({ icon, label, color, onPress }: any) => (
-  <TouchableOpacity style={[styles.quickAction, SHADOWS.sm]} onPress={onPress} activeOpacity={0.8}>
-    <LinearGradient
-      colors={[color, color + 'CC']}
-      style={styles.quickActionGradient}
-    >
-      <Ionicons name={icon} size={24} color={COLORS.white} />
-    </LinearGradient>
-    <Text style={styles.quickActionLabel}>{label}</Text>
-  </TouchableOpacity>
-);
+const QUICK_ACTIONS = [
+  { icon: 'cart', label: 'Nueva\nCompra', gradients: ['#0052CC', '#2684FF'] as [string, string], route: 'Compra' },
+  { icon: 'people', label: 'Clientes', gradients: ['#36B37E', '#00B890'] as [string, string], route: 'Clientes' },
+  { icon: 'cube', label: 'Productos', gradients: ['#6554C0', '#8777D9'] as [string, string], route: 'Productos' },
+  { icon: 'receipt', label: 'Mis\nCompras', gradients: ['#FF5630', '#FF8F73'] as [string, string], route: 'MisCompras' },
+];
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
@@ -68,79 +59,85 @@ export default function HomeScreen() {
 
   const greeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Buenos días';
-    if (hour < 18) return 'Buenas tardes';
-    return 'Buenas noches';
+    if (hour < 12) return { text: 'Buenos días', icon: '☀️' };
+    if (hour < 18) return { text: 'Buenas tardes', icon: '🌤' };
+    return { text: 'Buenas noches', icon: '🌙' };
   };
 
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('es-US', { style: 'currency', currency: 'USD' }).format(val || 0);
 
+  const g = greeting();
+
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+      <StatusBar barStyle="light-content" backgroundColor="#0052CC" />
 
-      {/* Header */}
+      {/* Header con gradiente vibrante */}
       <LinearGradient
-        colors={[COLORS.primary, COLORS.primaryDark]}
+        colors={['#0052CC', '#6554C0']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
         style={styles.header}
       >
+        {/* Círculos decorativos */}
+        <View style={styles.decorCircle1} />
+        <View style={styles.decorCircle2} />
+
         <View style={styles.headerTop}>
-          <View>
-            <Text style={styles.greeting}>{greeting()},</Text>
+          <View style={styles.headerLeft}>
+            <Text style={styles.greeting}>{g.icon} {g.text}</Text>
             <Text style={styles.userName}>{user?.nombre || 'Usuario'}</Text>
           </View>
-          <TouchableOpacity
-            style={styles.logoutBtn}
-            onPress={() => logout()}
-          >
-            <Ionicons name="log-out-outline" size={22} color={COLORS.white} />
+          <TouchableOpacity style={styles.logoutBtn} onPress={() => logout()}>
+            <Ionicons name="log-out-outline" size={20} color="rgba(255,255,255,0.9)" />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.headerBadge}>
-          <Ionicons name="shield-checkmark" size={12} color={COLORS.accent} />
-          <Text style={styles.rolText}>{user?.rol || 'USER'}</Text>
+        <View style={styles.roleRow}>
+          <View style={styles.roleBadge}>
+            <Ionicons name="shield-checkmark" size={11} color="#FFD700" />
+            <Text style={styles.roleText}>{user?.rol || 'USER'}</Text>
+          </View>
+          <Text style={styles.headerDate}>
+            {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}
+          </Text>
         </View>
       </LinearGradient>
 
       <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.primary]} />}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#0052CC']} />}
       >
-        {/* Stats Grid */}
-        <Text style={styles.sectionTitle}>Resumen del día</Text>
+        {/* Cards de estadísticas con gradiente */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Resumen del día</Text>
+        </View>
 
         {isLoading ? (
           <ActivityIndicator color={COLORS.primary} size="large" style={{ marginVertical: 40 }} />
         ) : (
           <View style={styles.statsGrid}>
-            <StatCard
-              icon="people"
-              label="Clientes"
-              value={stats?.totalClientes ?? '—'}
-              color={COLORS.primary}
-            />
-            <StatCard
-              icon="cube"
-              label="Productos"
-              value={stats?.totalProductos ?? '—'}
-              color={COLORS.success}
-            />
-            <StatCard
-              icon="receipt"
-              label="Compras Hoy"
-              value={stats?.comprasHoy ?? '—'}
-              color={COLORS.accent}
-            />
-            <StatCard
-              icon="cash"
-              label="Ventas Hoy"
-              value={formatCurrency(stats?.ventasHoy ?? 0)}
-              color={COLORS.warning}
-            />
+            {STAT_CARDS.map(card => {
+              const raw = stats?.[card.key as keyof Stats] ?? 0;
+              const display = card.isCurrency ? formatCurrency(raw as number) : String(raw ?? '—');
+              return (
+                <LinearGradient
+                  key={card.key}
+                  colors={card.gradients}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.statCard}
+                >
+                  <View style={styles.statIconCircle}>
+                    <Ionicons name={card.icon as any} size={20} color="rgba(255,255,255,0.95)" />
+                  </View>
+                  <Text style={styles.statValue}>{display}</Text>
+                  <Text style={styles.statLabel}>{card.label}</Text>
+                </LinearGradient>
+              );
+            })}
           </View>
         )}
 
@@ -149,67 +146,65 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={styles.alertCard}
             onPress={() => navigation.navigate('Productos')}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
           >
-            <View style={styles.alertIcon}>
-              <Ionicons name="warning" size={20} color={COLORS.warning} />
-            </View>
-            <View style={styles.alertContent}>
-              <Text style={styles.alertTitle}>Stock Bajo</Text>
+            <LinearGradient colors={['#FF991F', '#FF5630']} style={styles.alertIconBox}>
+              <Ionicons name="warning" size={17} color="#fff" />
+            </LinearGradient>
+            <View style={styles.alertBody}>
+              <Text style={styles.alertTitle}>¡Atención! Stock bajo</Text>
               <Text style={styles.alertText}>
-                {stats.productosStockBajo} producto{stats.productosStockBajo > 1 ? 's' : ''} con stock ≤ 10 unidades
+                {stats.productosStockBajo} producto{stats.productosStockBajo > 1 ? 's necesitan' : ' necesita'} reposición urgente
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={COLORS.textSecondary} />
+            <View style={styles.alertChevron}>
+              <Ionicons name="chevron-forward" size={16} color={COLORS.textSecondary} />
+            </View>
           </TouchableOpacity>
         )}
 
-        {/* Acciones rápidas */}
+        {/* Acciones rápidas — grid 2x2 */}
         <Text style={styles.sectionTitle}>Acciones rápidas</Text>
-        <View style={styles.quickActions}>
-          <QuickAction
-            icon="cart"
-            label="Nueva Compra"
-            color={COLORS.primary}
-            onPress={() => navigation.navigate('Compra')}
-          />
-          <QuickAction
-            icon="people"
-            label="Clientes"
-            color={COLORS.success}
-            onPress={() => navigation.navigate('Clientes')}
-          />
-          <QuickAction
-            icon="cube-outline"
-            label="Productos"
-            color={COLORS.accent}
-            onPress={() => navigation.navigate('Productos')}
-          />
-          <QuickAction
-            icon="list"
-            label="Mis Compras"
-            color={COLORS.warning}
-            onPress={() => navigation.navigate('MisCompras')}
-          />
+        <View style={styles.actionsGrid}>
+          {QUICK_ACTIONS.map(action => (
+            <TouchableOpacity
+              key={action.route}
+              style={[styles.actionCard, SHADOWS.sm]}
+              onPress={() => navigation.navigate(action.route)}
+              activeOpacity={0.85}
+            >
+              <LinearGradient
+                colors={action.gradients}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.actionIconBox}
+              >
+                <Ionicons name={action.icon as any} size={28} color="#fff" />
+              </LinearGradient>
+              <Text style={styles.actionLabel}>{action.label}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
-        {/* Banner promocional */}
+        {/* Banner CTA */}
         <LinearGradient
-          colors={[COLORS.primary, COLORS.accent]}
+          colors={['#6554C0', '#0052CC']}
           start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
+          end={{ x: 1, y: 1 }}
           style={styles.banner}
         >
-          <View>
-            <Text style={styles.bannerTitle}>¡Gestiona tu negocio!</Text>
-            <Text style={styles.bannerSub}>Registra compras de forma rápida y eficiente</Text>
+          <View style={styles.bannerDecor} />
+          <View style={styles.bannerContent}>
+            <Text style={styles.bannerTitle}>¡Listo para gestionar!</Text>
+            <Text style={styles.bannerSub}>Registra compras en segundos</Text>
           </View>
           <TouchableOpacity
             style={styles.bannerBtn}
             onPress={() => navigation.navigate('Compra')}
+            activeOpacity={0.9}
           >
-            <Text style={styles.bannerBtnText}>Iniciar</Text>
-            <Ionicons name="arrow-forward" size={16} color={COLORS.primary} />
+            <Text style={styles.bannerBtnText}>Empezar</Text>
+            <Ionicons name="arrow-forward" size={14} color="#6554C0" />
           </TouchableOpacity>
         </LinearGradient>
       </ScrollView>
@@ -221,85 +216,118 @@ const cardWidth = (width - SPACING.lg * 2 - SPACING.sm) / 2;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
+
+  /* Header */
   header: {
-    paddingTop: 50, paddingBottom: SPACING.xl,
+    paddingTop: 50,
+    paddingBottom: 28,
     paddingHorizontal: SPACING.lg,
+    overflow: 'hidden',
   },
-  headerTop: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
+  decorCircle1: {
+    position: 'absolute', width: 180, height: 180, borderRadius: 90,
+    backgroundColor: 'rgba(255,255,255,0.07)', top: -60, right: -40,
   },
-  greeting: { fontSize: FONTS.sizes.sm, color: 'rgba(255,255,255,0.75)' },
-  userName: { fontSize: FONTS.sizes.xl, fontWeight: '700', color: COLORS.white },
+  decorCircle2: {
+    position: 'absolute', width: 120, height: 120, borderRadius: 60,
+    backgroundColor: 'rgba(255,255,255,0.05)', top: 20, right: 60,
+  },
+  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  headerLeft: { flex: 1 },
+  greeting: { fontSize: FONTS.sizes.sm, color: 'rgba(255,255,255,0.8)', marginBottom: 2 },
+  userName: { fontSize: FONTS.sizes.xxl, fontWeight: '800', color: '#fff', letterSpacing: -0.5 },
   logoutBtn: {
-    width: 40, height: 40, borderRadius: RADIUS.md,
+    width: 40, height: 40, borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center', justifyContent: 'center',
   },
-  headerBadge: {
+  roleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 },
+  roleBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4,
-    borderRadius: RADIUS.full, marginTop: SPACING.sm,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20,
   },
-  rolText: { fontSize: FONTS.sizes.xs, color: 'rgba(255,255,255,0.9)', fontWeight: '600' },
+  roleText: { fontSize: 11, color: '#fff', fontWeight: '700' },
+  headerDate: { fontSize: 11, color: 'rgba(255,255,255,0.65)', textTransform: 'capitalize' },
 
-  scroll: { flex: 1 },
-  scrollContent: { padding: SPACING.lg, paddingBottom: SPACING.xxl },
+  /* Scroll */
+  scrollContent: { padding: SPACING.lg, paddingBottom: 40 },
 
+  /* Section headers */
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   sectionTitle: {
-    fontSize: FONTS.sizes.lg, fontWeight: '700', color: COLORS.text,
-    marginBottom: SPACING.md, marginTop: SPACING.sm,
+    fontSize: FONTS.sizes.md, fontWeight: '700', color: COLORS.text,
+    marginBottom: 12, marginTop: 4,
   },
 
+  /* Stats gradient cards */
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm, marginBottom: SPACING.md },
   statCard: {
-    width: cardWidth, backgroundColor: COLORS.white,
-    borderRadius: RADIUS.lg, padding: SPACING.md,
-    alignItems: 'flex-start',
+    width: cardWidth, borderRadius: RADIUS.xl,
+    padding: SPACING.md, paddingBottom: SPACING.lg,
+    overflow: 'hidden',
   },
-  statIconBg: {
-    width: 44, height: 44, borderRadius: RADIUS.md,
-    alignItems: 'center', justifyContent: 'center', marginBottom: SPACING.sm,
+  statIconCircle: {
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 10,
   },
-  statValue: { fontSize: FONTS.sizes.xl, fontWeight: '800', color: COLORS.text },
-  statLabel: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary, marginTop: 2 },
-  statSublabel: { fontSize: FONTS.sizes.xs, color: COLORS.textTertiary },
+  statValue: { fontSize: FONTS.sizes.xl, fontWeight: '800', color: '#fff', letterSpacing: -0.5 },
+  statLabel: { fontSize: FONTS.sizes.xs, color: 'rgba(255,255,255,0.8)', marginTop: 2, fontWeight: '500' },
 
+  /* Alert */
   alertCard: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#FFFBE6', borderRadius: RADIUS.lg,
+    backgroundColor: '#FFF8F0', borderRadius: RADIUS.lg,
     padding: SPACING.md, marginBottom: SPACING.md,
-    borderLeftWidth: 4, borderLeftColor: COLORS.warning,
+    borderWidth: 1, borderColor: '#FFD8B3',
     ...SHADOWS.sm,
   },
-  alertIcon: {
-    width: 36, height: 36, borderRadius: RADIUS.md,
-    backgroundColor: COLORS.warning + '20',
+  alertIconBox: {
+    width: 38, height: 38, borderRadius: RADIUS.md,
     alignItems: 'center', justifyContent: 'center', marginRight: SPACING.sm,
   },
-  alertContent: { flex: 1 },
+  alertBody: { flex: 1 },
   alertTitle: { fontSize: FONTS.sizes.sm, fontWeight: '700', color: COLORS.text },
-  alertText: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary },
-
-  quickActions: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.lg },
-  quickAction: { flex: 1, alignItems: 'center', backgroundColor: COLORS.white, borderRadius: RADIUS.lg, paddingVertical: SPACING.md, ...SHADOWS.sm },
-  quickActionGradient: {
-    width: 48, height: 48, borderRadius: RADIUS.md,
-    alignItems: 'center', justifyContent: 'center', marginBottom: SPACING.xs,
+  alertText: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary, marginTop: 1 },
+  alertChevron: {
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: COLORS.border, alignItems: 'center', justifyContent: 'center',
   },
-  quickActionLabel: { fontSize: FONTS.sizes.xs, fontWeight: '600', color: COLORS.text, textAlign: 'center' },
 
+  /* Quick actions grid 2x2 */
+  actionsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm, marginBottom: SPACING.lg },
+  actionCard: {
+    width: cardWidth, backgroundColor: COLORS.white,
+    borderRadius: RADIUS.xl, paddingVertical: SPACING.lg,
+    alignItems: 'center',
+  },
+  actionIconBox: {
+    width: 60, height: 60, borderRadius: 18,
+    alignItems: 'center', justifyContent: 'center', marginBottom: SPACING.sm,
+  },
+  actionLabel: {
+    fontSize: FONTS.sizes.xs, fontWeight: '700', color: COLORS.text,
+    textAlign: 'center', lineHeight: 16,
+  },
+
+  /* Banner */
   banner: {
     borderRadius: RADIUS.xl, padding: SPACING.lg,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    ...SHADOWS.md,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    overflow: 'hidden', ...SHADOWS.md,
   },
-  bannerTitle: { fontSize: FONTS.sizes.lg, fontWeight: '700', color: COLORS.white },
-  bannerSub: { fontSize: FONTS.sizes.xs, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
+  bannerDecor: {
+    position: 'absolute', width: 140, height: 140, borderRadius: 70,
+    backgroundColor: 'rgba(255,255,255,0.07)', right: -30, top: -40,
+  },
+  bannerContent: { flex: 1 },
+  bannerTitle: { fontSize: FONTS.sizes.lg, fontWeight: '800', color: '#fff' },
+  bannerSub: { fontSize: FONTS.sizes.xs, color: 'rgba(255,255,255,0.75)', marginTop: 2 },
   bannerBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: COLORS.white, paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm,
+    backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 9,
     borderRadius: RADIUS.full,
   },
-  bannerBtnText: { fontSize: FONTS.sizes.sm, fontWeight: '700', color: COLORS.primary },
+  bannerBtnText: { fontSize: FONTS.sizes.sm, fontWeight: '700', color: '#6554C0' },
 });

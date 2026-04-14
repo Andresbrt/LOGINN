@@ -15,6 +15,20 @@ interface Producto {
 
 const emptyForm = { nombre: '', descripcion: '', precio: '', stock: '', categoria: '', codigo: '' };
 
+const CATEGORY_MAP: Record<string, { icon: string; colors: [string, string] }> = {
+  'Electrónicos':    { icon: 'laptop-outline',        colors: ['#0052CC', '#2684FF'] },
+  'Periféricos':     { icon: 'mouse-outline',          colors: ['#6554C0', '#8777D9'] },
+  'Audio':           { icon: 'headset-outline',        colors: ['#FF5630', '#FF8F73'] },
+  'Monitores':       { icon: 'desktop-outline',        colors: ['#36B37E', '#57D9A3'] },
+  'Almacenamiento':  { icon: 'save-outline',           colors: ['#FF991F', '#FFAB00'] },
+  'Accesorios':      { icon: 'hardware-chip-outline',  colors: ['#00B8D9', '#00D4FF'] },
+  'Memoria':         { icon: 'server-outline',         colors: ['#6554C0', '#998DD9'] },
+  'General':         { icon: 'cube-outline',           colors: ['#5E6C84', '#8993A4'] },
+};
+
+const getCategoryMeta = (cat: string) =>
+  CATEGORY_MAP[cat] ?? { icon: 'cube-outline', colors: ['#5E6C84', '#8993A4'] as [string, string] };
+
 export default function ProductosScreen() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [filtered, setFiltered] = useState<Producto[]>([]);
@@ -122,19 +136,26 @@ export default function ProductosScreen() {
     return COLORS.success;
   };
 
-  const renderItem = ({ item }: { item: Producto }) => (
+  const renderItem = ({ item }: { item: Producto }) => {
+    const meta = getCategoryMeta(item.categoria || 'General');
+    return (
     <View style={[styles.card, SHADOWS.sm]}>
+      {/* Icono de categoría con gradiente */}
+      <LinearGradient colors={meta.colors} style={styles.catIcon} start={{x:0,y:0}} end={{x:1,y:1}}>
+        <Ionicons name={meta.icon as any} size={22} color="#fff" />
+      </LinearGradient>
+
       <View style={styles.cardBody}>
         <View style={styles.cardTop}>
-          <View style={styles.categoryChip}>
-            <Text style={styles.categoryText}>{item.categoria || 'General'}</Text>
+          <View style={[styles.categoryChip, { backgroundColor: meta.colors[0] + '18' }]}>
+            <Text style={[styles.categoryText, { color: meta.colors[0] }]}>{item.categoria || 'General'}</Text>
           </View>
           {item.codigo ? <Text style={styles.codigo}>{item.codigo}</Text> : null}
         </View>
         <Text style={styles.nombre}>{item.nombre}</Text>
         {item.descripcion ? <Text style={styles.desc} numberOfLines={2}>{item.descripcion}</Text> : null}
         <View style={styles.cardFooter}>
-          <Text style={styles.precio}>${(item.precio || 0).toFixed(2)}</Text>
+          <Text style={[styles.precio, { color: meta.colors[0] }]}>${(item.precio || 0).toFixed(2)}</Text>
           <View style={[styles.stockBadge, { backgroundColor: getStockColor(item.stock) + '20' }]}>
             <View style={[styles.stockDot, { backgroundColor: getStockColor(item.stock) }]} />
             <Text style={[styles.stockText, { color: getStockColor(item.stock) }]}>
@@ -152,12 +173,13 @@ export default function ProductosScreen() {
         </TouchableOpacity>
       </View>
     </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
-      <LinearGradient colors={[COLORS.primary, COLORS.primaryDark]} style={styles.header}>
+      <LinearGradient colors={['#0052CC', '#6554C0']} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.header}>
         <Text style={styles.headerTitle}>Productos</Text>
         <Text style={styles.headerSub}>{filtered.length} artículos en catálogo</Text>
       </LinearGradient>
@@ -280,6 +302,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white, borderRadius: RADIUS.lg,
     padding: SPACING.md, marginBottom: SPACING.sm,
     flexDirection: 'row', alignItems: 'flex-start',
+  },
+  catIcon: {
+    width: 50, height: 50, borderRadius: RADIUS.md,
+    alignItems: 'center', justifyContent: 'center', marginRight: SPACING.sm,
+    flexShrink: 0,
   },
   cardBody: { flex: 1 },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.xs },
