@@ -55,6 +55,7 @@ export default function CompraScreen() {
 
   const [loadingClientes, setLoadingClientes] = useState(false);
   const [loadingProductos, setLoadingProductos] = useState(false);
+  const [errorClientes, setErrorClientes] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
   const [modalCliente,  setModalCliente]  = useState(false);
@@ -66,11 +67,14 @@ export default function CompraScreen() {
 
   const cargarClientes = useCallback(async () => {
     setLoadingClientes(true);
+    setErrorClientes(false);
     try {
       const data = await clienteService.listar();
-      allClientesRef.current = data;   // guardar buffer completo
+      allClientesRef.current = data;
       setClientes(data);
-    } catch { } finally { setLoadingClientes(false); }
+    } catch {
+      setErrorClientes(true);
+    } finally { setLoadingClientes(false); }
   }, []);
 
   const cargarProductos = useCallback(async () => {
@@ -424,7 +428,21 @@ export default function CompraScreen() {
               />
             </View>
             {loadingClientes ? (
-              <ActivityIndicator color={COLORS.primary} style={{ marginTop: 20 }} />
+              <View style={styles.loadingBox}>
+                <ActivityIndicator color={COLORS.primary} size="large" />
+                <Text style={styles.loadingText}>Conectando con el servidor...</Text>
+                <Text style={styles.loadingHint}>La primera carga puede tardar ~30 seg</Text>
+              </View>
+            ) : errorClientes ? (
+              <View style={styles.errorBox}>
+                <Ionicons name="cloud-offline-outline" size={48} color={COLORS.danger} />
+                <Text style={styles.errorTitle}>Sin conexión al servidor</Text>
+                <Text style={styles.errorText}>El servidor puede estar iniciando. Espera unos segundos e intenta de nuevo.</Text>
+                <TouchableOpacity style={styles.retryBtn} onPress={cargarClientes}>
+                  <Ionicons name="refresh" size={18} color={COLORS.white} />
+                  <Text style={styles.retryText}>Reintentar</Text>
+                </TouchableOpacity>
+              </View>
             ) : (
               <FlatList
                 data={clientes}
@@ -697,6 +715,18 @@ const styles = StyleSheet.create({
   productoPrecio: { fontSize: FONTS.sizes.md, fontWeight: '700', color: COLORS.primary },
 
   emptyModal: { textAlign: 'center', color: COLORS.textTertiary, marginTop: 20 },
+  loadingBox: { alignItems: 'center', paddingVertical: 30, gap: 8 },
+  loadingText: { fontSize: FONTS.sizes.sm, fontWeight: '600', color: COLORS.text },
+  loadingHint: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary, textAlign: 'center' },
+  errorBox: { alignItems: 'center', paddingVertical: 24, paddingHorizontal: SPACING.md, gap: 8 },
+  errorTitle: { fontSize: FONTS.sizes.md, fontWeight: '700', color: COLORS.text },
+  errorText: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary, textAlign: 'center', lineHeight: 18 },
+  retryBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: COLORS.primary, paddingHorizontal: 20, paddingVertical: 10,
+    borderRadius: RADIUS.full, marginTop: 8,
+  },
+  retryText: { color: COLORS.white, fontWeight: '700', fontSize: FONTS.sizes.sm },
 
   modalOverlayCenter: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: SPACING.lg },
   successModal: {
